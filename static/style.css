@@ -1,0 +1,8 @@
+/* static/style.css */
+.completed {
+    text-decoration: line-through;
+    color: gray;
+}
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+}

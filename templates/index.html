@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>📋 ToDo 任务管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .task-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .task-title.completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .task-time {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        .task-actions button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5" style="max-width: 700px;">
+        <div class="task-card">
+
+            <h2 class="mb-4 text-center">📋 我的任务清单</h2>
+
+            <!-- 添加任务表单 -->
+            <form action="/add" method="post" class="input-group mb-3">
+                <input type="text" name="title" class="form-control" placeholder="✍️ 输入一个新任务..." required>
+                <button class="btn btn-primary" type="submit">➕ 添加</button>
+            </form>
+
+            <!-- 搜索任务 -->
+            <form method="GET" action="/" class="input-group mb-4">
+                <input type="text" name="q" class="form-control" placeholder="🔍 搜索任务..." value="{{ keyword }}">
+                <button class="btn btn-outline-secondary" type="submit">搜索</button>
+            </form>
+
+            <!-- 筛选按钮 -->
+            <div class="mb-3 text-center">
+                <a href="/" class="btn btn-sm btn-outline-primary">📋 全部</a>
+                <a href="/pending" class="btn btn-sm btn-outline-warning">⏳ 未完成</a>
+                <a href="/completed" class="btn btn-sm btn-outline-success">✅ 已完成</a>
+            </div>
+
+            <!-- 任务列表 -->
+            <ul class="list-group" id="task-list">
+                {% for task in tasks %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start flex-wrap" id="task-{{ task.id }}">
+                        <div>
+                            <div class="task-title {% if task.complete %}completed{% endif %}">{{ task.title }}</div>
+                            <div class="task-time">📅 {{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                        </div>
+                        <div class="task-actions">
+                            {% if not task.complete %}
+                                <button class="btn btn-sm btn-success" onclick="completeTask({{ task.id }})">✅ 完成</button>
+                            {% endif %}
+                            <a href="/edit/{{ task.id }}" class="btn btn-sm btn-secondary">✏️ 修改</a>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTask({{ task.id }})">🗑️ 删除</button>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item text-center text-muted">😴 没有任务哦，快添加一个吧！</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- JS 脚本 -->
+    <script>
+        function deleteTask(id) {
+            fetch(`/api/delete/${id}`, {
+                method: 'POST'
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      const taskElement = document.getElementById(`task-${id}`);
+                      if (taskElement) taskElement.remove();
+                  }
+              });
+        }
+
+        function completeTask(id) {
+            fetch(`/api/complete/${id}`, {
+                method: 'POST'
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      const taskElement = document.getElementById(`task-${id}`);
+                      if (taskElement) {
+                          const title = taskElement.querySelector('.task-title');
+                          title.classList.add('completed');
+                          taskElement.querySelector('.btn-success')?.remove();
+                      }
+                  }
+              });
+        }
+    </script>
+</body>
+</html>
