@@ -3,7 +3,7 @@ services:
     name: flask-todo-app
     env: python
     plan: free
-    buildCommand: "./.render/build.sh"
+    buildCommand: ""
     startCommand: "gunicorn app:app"
     envVars:
       - key: FLASK_ENV
